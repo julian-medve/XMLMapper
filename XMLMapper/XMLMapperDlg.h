@@ -3,6 +3,12 @@
 //
 
 #pragma once
+#include "Location.h"
+#include "rapidxml-1.13/rapidxml.hpp"
+
+
+using namespace rapidxml;
+using namespace std;
 
 
 // CXMLMapperDlg dialog
@@ -31,4 +37,28 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+
+	
+	void InitXPlaneXML();
+	void InitMSXML();
+
+public:
+	CArray<Location> mlistXPlane;
+	CArray<Location> mlistMicrosoft;
+
+	CListBox m_ctlListMicrosoft;
+	CListBox m_ctlListXPlane;
+
+	CStatic m_ctlStaticMSLatitude;
+	CStatic m_ctlStaticMSLongitude;
+	CStatic m_ctlStaticMSHeading;
+
+	CStatic m_ctlStaticXLatitude;
+	CStatic m_ctlStaticXLongitude;
+	CStatic m_ctlStaticXHeading;
+
+	afx_msg void OnLbnSelchangeListXplane();
+
+private:
+	xml_document<> m_xplaneDoc;
 };

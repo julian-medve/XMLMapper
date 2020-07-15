@@ -15,17 +15,10 @@
 #include <fstream>
 #include <vector>
 
-#include "rapidxml-1.13/rapidxml.hpp"
-
-using namespace rapidxml;
-using namespace std;
-
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-
 
 
 // CAboutDlg dialog used for App About
@@ -74,12 +67,24 @@ CXMLMapperDlg::CXMLMapperDlg(CWnd* pParent /*=nullptr*/)
 void CXMLMapperDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+
+	DDX_Control(pDX, IDC_LIST_XPLANE, m_ctlListXPlane);
+	DDX_Control(pDX, IDC_LIST_MS, m_ctlListMicrosoft);
+
+	DDX_Control(pDX, IDC_STATIC_MS_LATITUDE, m_ctlStaticMSLatitude);
+	DDX_Control(pDX, IDC_STATIC_MS_LONGITUDE, m_ctlStaticMSLongitude);
+	DDX_Control(pDX, IDC_STATIC_MS_HEADING, m_ctlStaticMSHeading);
+
+	DDX_Control(pDX, IDC_STATIC_X_LATITUDE, m_ctlStaticXLatitude);
+	DDX_Control(pDX, IDC_STATIC_X_LONGITUDE, m_ctlStaticXLongitude);
+	DDX_Control(pDX, IDC_STATIC_X_HEADING, m_ctlStaticXHeading);
 }
 
 BEGIN_MESSAGE_MAP(CXMLMapperDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_LBN_SELCHANGE(IDC_LIST_XPLANE, &CXMLMapperDlg::OnLbnSelchangeListXplane)
 END_MESSAGE_MAP()
 
 
@@ -117,35 +122,9 @@ BOOL CXMLMapperDlg::OnInitDialog()
 
 	// TODO: Add extra initialization here
 
-	TRACE("Parsing my beer journal...\n");
-	xml_document<> doc;
-	xml_node<>* root_node;
+	InitXPlaneXML();
+	InitMSXML();
 	
-	// Read the xml file into a vector
-	ifstream theFile("E:\\____GIT____\\XMLMapper\\beerJournal.xml");
-
-	vector<char> buffer((istreambuf_iterator<char>(theFile)), istreambuf_iterator<char>());
-	buffer.push_back('\0');
-	// Parse the buffer using the xml file parsing library into doc 
-	doc.parse<0>(&buffer[0]);
-	// Find our root node
-	root_node = doc.first_node("MyBeerJournal");
-	// Iterate over the brewerys
-	for (xml_node<>* brewery_node = root_node->first_node("Brewery"); brewery_node; brewery_node = brewery_node->next_sibling())
-	{
-		printf("I have visited %s in %s. \n",
-			brewery_node->first_attribute("name")->value(),
-			brewery_node->first_attribute("location")->value());
-		// Interate over the beers
-		for (xml_node<>* beer_node = brewery_node->first_node("Beer"); beer_node; beer_node = beer_node->next_sibling())
-		{
-			TRACE("On %s, I tried their %s which is a %s. \n",
-				beer_node->first_attribute("dateSampled")->value(),
-				beer_node->first_attribute("name")->value(),
-				beer_node->first_attribute("description")->value());
-			TRACE("I gave it the following review: %s\n", beer_node->value());
-		}
-	}
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -199,3 +178,107 @@ HCURSOR CXMLMapperDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+void CXMLMapperDlg::InitXPlaneXML() {
+
+	TRACE("Parsing my beer journal...\n");
+	xml_node<>* root_node;
+
+	// Read the xml file into a vector
+	ifstream theFile("E:\\____GIT____\\XMLMapper\\earth.wed.xml");
+
+	vector<char> buffer((istreambuf_iterator<char>(theFile)), istreambuf_iterator<char>());
+	buffer.push_back('\0');
+	// Parse the buffer using the xml file parsing library into doc 
+	m_xplaneDoc.parse<0>(&buffer[0]);
+	// Find our root node
+	root_node = m_xplaneDoc.first_node("doc")->first_node("objects");
+
+
+	// Iterate over the brewerys
+	int i = 0;
+	for (xml_node<>* brewery_node = root_node->first_node("object"); brewery_node; brewery_node = brewery_node->next_sibling())
+	{
+		xml_node<>* node_hierarchy = brewery_node->first_node("hierarchy");
+		xml_node<>* node_point = brewery_node->first_node("point");
+
+		CString name, latitude, longitude;
+		if (node_hierarchy != NULL)
+			name = CString(node_hierarchy->first_attribute("name")->value());
+		else
+			name = "";
+
+		if (node_point != NULL) {
+			latitude = CString(node_point->first_attribute("latitude")->value());
+			longitude = CString(node_point->first_attribute("longitude")->value());
+		}
+		else
+		{
+			latitude = longitude = "";
+		}
+		
+
+		Location tempLocation(name, latitude, longitude);
+		mlistXPlane.Add(tempLocation);
+
+		m_ctlListXPlane.AddString(name);
+	}
+}
+
+void CXMLMapperDlg::InitMSXML() {
+
+	TRACE("Parsing my beer journal...\n");
+	xml_node<>* root_node;
+
+	// Read the xml file into a vector
+	ifstream theFile("E:\\____GIT____\\XMLMapper\\objects.xml");
+
+	vector<char> buffer((istreambuf_iterator<char>(theFile)), istreambuf_iterator<char>());
+	buffer.push_back('\0');
+	// Parse the buffer using the xml file parsing library into doc 
+	m_xplaneDoc.parse<0>(&buffer[0]);
+	// Find our root node
+	root_node = m_xplaneDoc.first_node("doc")->first_node("objects");
+
+
+	// Iterate over the brewerys
+	int i = 0;
+	for (xml_node<>* brewery_node = root_node->first_node("object"); brewery_node; brewery_node = brewery_node->next_sibling())
+	{
+		xml_node<>* node_hierarchy = brewery_node->first_node("hierarchy");
+		xml_node<>* node_point = brewery_node->first_node("point");
+
+		CString name, latitude, longitude;
+		if (node_hierarchy != NULL)
+			name = CString(node_hierarchy->first_attribute("name")->value());
+		else
+			name = "";
+
+		if (node_point != NULL) {
+			latitude = CString(node_point->first_attribute("latitude")->value());
+			longitude = CString(node_point->first_attribute("longitude")->value());
+		}
+		else
+		{
+			latitude = longitude = "";
+		}
+
+
+		Location tempLocation(name, latitude, longitude);
+		mlistXPlane.Add(tempLocation);
+
+		m_ctlListXPlane.AddString(name);
+	}
+}
+
+void CXMLMapperDlg::OnLbnSelchangeListXplane()
+{
+	// TODO: Add your control notification handler code here
+	int i = m_ctlListXPlane.GetCurSel();
+
+	Location locationSelected =	mlistXPlane.GetAt(i);
+
+	this->m_ctlStaticXLongitude.SetWindowTextW(locationSelected.longitude);
+	this->m_ctlStaticXLatitude.SetWindowTextW(locationSelected.latitude);
+	this->m_ctlStaticXHeading.SetWindowTextW(locationSelected.name);
+}
