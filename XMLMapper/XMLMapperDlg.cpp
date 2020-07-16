@@ -211,17 +211,17 @@ void CXMLMapperDlg::InitXPlaneXML() {
 		CString name, latitude, longitude, heading;
 		
 		if (node_hierarchy != NULL) {
-			
+
 			name = CString(node_hierarchy->first_attribute("name")->value());
 
 			if (name.Find(tempSuffix) != -1) {
 				name = name.Left(name.GetLength() - tempSuffix.GetLength());
 			}
 			else
-				name = "";
+				continue;
 		}
 		else
-			name = "";
+			continue;
 
 		if (node_point != NULL) {
 
