@@ -184,7 +184,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
-    <ClInclude Include="Location.h" />
+    <ClInclude Include="MSLocation.h" />
+    <ClInclude Include="XPlaneLocation.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
@@ -192,7 +193,8 @@
     <ClInclude Include="XMLMapperDlg.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Location.cpp" />
+    <ClCompile Include="XPlaneLocation.cpp" />
+    <ClCompile Include="MSLocation.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

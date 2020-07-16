@@ -3,7 +3,8 @@
 //
 
 #pragma once
-#include "Location.h"
+#include "XPlaneLocation.h"
+#include "MSLocation.h"
 #include "rapidxml-1.13/rapidxml.hpp"
 
 
@@ -43,8 +44,8 @@ protected:
 	void InitMSXML();
 
 public:
-	CArray<Location> mlistXPlane;
-	CArray<Location> mlistMicrosoft;
+	CArray<XPlaneLocation> mlistXPlane;
+	CArray<MSLocation> mlistMicrosoft;
 
 	CListBox m_ctlListMicrosoft;
 	CListBox m_ctlListXPlane;

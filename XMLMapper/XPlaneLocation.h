@@ -1,7 +1,7 @@
 #pragma once
 #include <atlstr.h>
 
-class Location
+class XPlaneLocation
 {
 	public :
 		CString name;
@@ -9,9 +9,7 @@ class Location
 		CString longitude;
 		CString heading;
 
-
-		Location();
-		Location(CString name, CString latitude, CString longitude, CString heading);
-		
+		XPlaneLocation();
+		XPlaneLocation(CString name, CString latitude, CString longitude, CString heading);
 };
 

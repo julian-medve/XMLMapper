@@ -246,7 +246,7 @@ void CXMLMapperDlg::InitXPlaneXML() {
 		}
 		
 
-		Location tempLocation(name, latitude, longitude, heading);
+		XPlaneLocation tempLocation(name, latitude, longitude, heading);
 		mlistXPlane.Add(tempLocation);
 
 		m_ctlListXPlane.AddString(name);
@@ -276,15 +276,30 @@ void CXMLMapperDlg::InitMSXML() {
 		if (node_SceneryObject->type() == node_comment)
 			continue;
 
-		CString name, latitude, longitude, heading;
+		CString name, latitude, longitude, heading, alt, pitch, bank, imageComplexity, altitudeIsAgl, snapToGround, snapToNormal, library_name, library_scale;
 		
-		name = CString(node_SceneryObject->previous_sibling()->value());
-		name = name.Right(name.GetLength() - tempPrefix.GetLength());
-		heading = CString(node_SceneryObject->first_attribute("heading")->value());
-		latitude = CString(node_SceneryObject->first_attribute("lat")->value());
-		longitude = CString(node_SceneryObject->first_attribute("lon")->value());
+		name				= CString(node_SceneryObject->previous_sibling()->value());
+		name				= name.Right(name.GetLength() - tempPrefix.GetLength());
+		
+		heading				= CString(node_SceneryObject->first_attribute("heading")->value());
+		latitude			= CString(node_SceneryObject->first_attribute("lat")->value());
+		longitude			= CString(node_SceneryObject->first_attribute("lon")->value());
 
-		Location tempLocation(name, latitude, longitude, heading);
+
+		alt					= CString(node_SceneryObject->first_attribute("alt")->value());
+		pitch				= CString(node_SceneryObject->first_attribute("pitch")->value());
+		bank				= CString(node_SceneryObject->first_attribute("bank")->value());
+		imageComplexity		= CString(node_SceneryObject->first_attribute("imageComplexity")->value());
+
+		altitudeIsAgl		= CString(node_SceneryObject->first_attribute("altitudeIsAgl")->value());
+		snapToGround		= CString(node_SceneryObject->first_attribute("snapToGround")->value());
+		snapToNormal		= CString(node_SceneryObject->first_attribute("snapToNormal")->value());
+
+		library_name		= CString(node_SceneryObject->first_node("LibraryObject")->first_attribute("name")->value());
+		library_scale		= CString(node_SceneryObject->first_node("LibraryObject")->first_attribute("scale")->value());
+		
+
+		MSLocation tempLocation(name, latitude, longitude, heading, alt, pitch, bank, imageComplexity, altitudeIsAgl, snapToGround, snapToNormal, library_name, library_scale);
 		mlistMicrosoft.Add(tempLocation);
 
 		m_ctlListMicrosoft.AddString(name);
@@ -299,7 +314,7 @@ void CXMLMapperDlg::OnLbnSelchangeListXplane()
 	if (i >= mlistXPlane.GetCount())
 		return;
 
-	Location locationSelected =	mlistXPlane.GetAt(i);
+	XPlaneLocation locationSelected =	mlistXPlane.GetAt(i);
 
 	this->m_ctlStaticXObjectName.SetWindowTextW(locationSelected.name);
 	this->m_ctlStaticXLongitude.SetWindowTextW(locationSelected.longitude);
@@ -316,7 +331,7 @@ void CXMLMapperDlg::OnLbnSelchangeListMs()
 	if (i >= m_ctlListMicrosoft.GetCount())
 		return;
 
-	Location locationSelected = mlistMicrosoft.GetAt(i);
+	MSLocation locationSelected = mlistMicrosoft.GetAt(i);
 
 	this->m_ctlStaticMSObjectName.SetWindowTextW(locationSelected.name);
 	this->m_ctlStaticMSLongitude.SetWindowTextW(locationSelected.longitude);
