@@ -313,7 +313,7 @@ void CXMLMapperDlg::OnLbnSelchangeListMs()
 	// TODO: Add your control notification handler code here
 	int i = m_ctlListMicrosoft.GetCurSel();
 
-	if (i >= mlistXPlane.GetCount())
+	if (i >= m_ctlListMicrosoft.GetCount())
 		return;
 
 	Location locationSelected = mlistMicrosoft.GetAt(i);
