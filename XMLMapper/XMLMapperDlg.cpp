@@ -71,10 +71,13 @@ void CXMLMapperDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LIST_XPLANE, m_ctlListXPlane);
 	DDX_Control(pDX, IDC_LIST_MS, m_ctlListMicrosoft);
 
+	DDX_Control(pDX, IDC_STATIC_MS_OBJECT_NAME, m_ctlStaticMSObjectName);
 	DDX_Control(pDX, IDC_STATIC_MS_LATITUDE, m_ctlStaticMSLatitude);
 	DDX_Control(pDX, IDC_STATIC_MS_LONGITUDE, m_ctlStaticMSLongitude);
 	DDX_Control(pDX, IDC_STATIC_MS_HEADING, m_ctlStaticMSHeading);
 
+
+	DDX_Control(pDX, IDC_STATIC_X_OBJECT_NAME, m_ctlStaticXObjectName);
 	DDX_Control(pDX, IDC_STATIC_X_LATITUDE, m_ctlStaticXLatitude);
 	DDX_Control(pDX, IDC_STATIC_X_LONGITUDE, m_ctlStaticXLongitude);
 	DDX_Control(pDX, IDC_STATIC_X_HEADING, m_ctlStaticXHeading);
@@ -124,7 +127,7 @@ BOOL CXMLMapperDlg::OnInitDialog()
 	// TODO: Add extra initialization here
 
 	InitXPlaneXML();
-	/*InitMSXML();*/
+	InitMSXML();
 	
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -190,7 +193,7 @@ void CXMLMapperDlg::InitXPlaneXML() {
 	vector<char> buffer((istreambuf_iterator<char>(theFile)), istreambuf_iterator<char>());
 	buffer.push_back('\0');
 	// Parse the buffer using the xml file parsing library into doc 
-	m_xplaneDoc.parse<0>(&buffer[0]);
+	m_xplaneDoc.parse<parse_comment_nodes>(&buffer[0]);
 	// Find our root node
 	root_node = m_xplaneDoc.first_node("doc")->first_node("objects");
 
@@ -260,21 +263,28 @@ void CXMLMapperDlg::InitMSXML() {
 	vector<char> buffer((istreambuf_iterator<char>(theFile)), istreambuf_iterator<char>());
 	buffer.push_back('\0');
 	// Parse the buffer using the xml file parsing library into doc 
-	m_microsoftDoc.parse<0>(&buffer[0]);
+	m_microsoftDoc.parse<parse_comment_nodes>(&buffer[0]);
 	// Find our root node
 	root_node = m_microsoftDoc.first_node("FSData");
 
+	CString tempPrefix("SceneryObject name: ");
 
 	// Iterate over the brewerys
 	for (xml_node<>* node_SceneryObject = root_node->first_node("SceneryObject"); node_SceneryObject; node_SceneryObject = node_SceneryObject->next_sibling())
 	{
-		CString name, latitude, longitude;
+
+		if (node_SceneryObject->type() == node_comment)
+			continue;
+
+		CString name, latitude, longitude, heading;
 		
-		name = CString(node_SceneryObject->first_attribute("heading")->value());
+		name = CString(node_SceneryObject->previous_sibling()->value());
+		name = name.Right(name.GetLength() - tempPrefix.GetLength());
+		heading = CString(node_SceneryObject->first_attribute("heading")->value());
 		latitude = CString(node_SceneryObject->first_attribute("lat")->value());
 		longitude = CString(node_SceneryObject->first_attribute("lon")->value());
 
-		Location tempLocation(name, latitude, longitude, CString("temporary heading"));
+		Location tempLocation(name, latitude, longitude, heading);
 		mlistMicrosoft.Add(tempLocation);
 
 		m_ctlListMicrosoft.AddString(name);
@@ -286,11 +296,15 @@ void CXMLMapperDlg::OnLbnSelchangeListXplane()
 	// TODO: Add your control notification handler code here
 	int i = m_ctlListXPlane.GetCurSel();
 
+	if (i >= mlistXPlane.GetCount())
+		return;
+
 	Location locationSelected =	mlistXPlane.GetAt(i);
 
+	this->m_ctlStaticXObjectName.SetWindowTextW(locationSelected.name);
 	this->m_ctlStaticXLongitude.SetWindowTextW(locationSelected.longitude);
 	this->m_ctlStaticXLatitude.SetWindowTextW(locationSelected.latitude);
-	this->m_ctlStaticXHeading.SetWindowTextW(locationSelected.name);
+	this->m_ctlStaticXHeading.SetWindowTextW(locationSelected.heading);
 }
 
 
@@ -299,9 +313,13 @@ void CXMLMapperDlg::OnLbnSelchangeListMs()
 	// TODO: Add your control notification handler code here
 	int i = m_ctlListMicrosoft.GetCurSel();
 
+	if (i >= mlistXPlane.GetCount())
+		return;
+
 	Location locationSelected = mlistMicrosoft.GetAt(i);
 
+	this->m_ctlStaticMSObjectName.SetWindowTextW(locationSelected.name);
 	this->m_ctlStaticMSLongitude.SetWindowTextW(locationSelected.longitude);
 	this->m_ctlStaticMSLatitude.SetWindowTextW(locationSelected.latitude);
-	this->m_ctlStaticMSHeading.SetWindowTextW(locationSelected.name);
+	this->m_ctlStaticMSHeading.SetWindowTextW(locationSelected.heading);
 }

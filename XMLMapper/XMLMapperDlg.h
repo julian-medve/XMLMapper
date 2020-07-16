@@ -49,15 +49,16 @@ public:
 	CListBox m_ctlListMicrosoft;
 	CListBox m_ctlListXPlane;
 
+	CStatic m_ctlStaticMSObjectName;
 	CStatic m_ctlStaticMSLatitude;
 	CStatic m_ctlStaticMSLongitude;
 	CStatic m_ctlStaticMSHeading;
 
+	CStatic m_ctlStaticXObjectName;
 	CStatic m_ctlStaticXLatitude;
 	CStatic m_ctlStaticXLongitude;
 	CStatic m_ctlStaticXHeading;
 
-	afx_msg void OnLbnSelchangeListXplane();
 
 private:
 	xml_document<> m_xplaneDoc;
@@ -65,4 +66,5 @@ private:
 
 public:
 	afx_msg void OnLbnSelchangeListMs();
+	afx_msg void OnLbnSelchangeListXplane();
 };
