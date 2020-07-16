@@ -61,4 +61,8 @@ public:
 
 private:
 	xml_document<> m_xplaneDoc;
+	xml_document<> m_microsoftDoc;
+
+public:
+	afx_msg void OnLbnSelchangeListMs();
 };

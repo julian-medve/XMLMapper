@@ -2,8 +2,6 @@
 // Microsoft Visual C++ generated include file.
 // Used by XMLMapper.rc
 //
-#define IDXMLMapper                     9
-#define IDD_XMLMapper                   9
 #define IDM_ABOUTBOX                    0x0010
 #define IDD_ABOUTBOX                    100
 #define IDS_ABOUTBOX                    101

@@ -85,6 +85,7 @@ BEGIN_MESSAGE_MAP(CXMLMapperDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_LBN_SELCHANGE(IDC_LIST_XPLANE, &CXMLMapperDlg::OnLbnSelchangeListXplane)
+	ON_LBN_SELCHANGE(IDC_LIST_MS, &CXMLMapperDlg::OnLbnSelchangeListMs)
 END_MESSAGE_MAP()
 
 
@@ -123,7 +124,7 @@ BOOL CXMLMapperDlg::OnInitDialog()
 	// TODO: Add extra initialization here
 
 	InitXPlaneXML();
-	InitMSXML();
+	/*InitMSXML();*/
 	
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -181,7 +182,6 @@ HCURSOR CXMLMapperDlg::OnQueryDragIcon()
 
 void CXMLMapperDlg::InitXPlaneXML() {
 
-	TRACE("Parsing my beer journal...\n");
 	xml_node<>* root_node;
 
 	// Read the xml file into a vector
@@ -195,30 +195,55 @@ void CXMLMapperDlg::InitXPlaneXML() {
 	root_node = m_xplaneDoc.first_node("doc")->first_node("objects");
 
 
+	
 	// Iterate over the brewerys
-	int i = 0;
-	for (xml_node<>* brewery_node = root_node->first_node("object"); brewery_node; brewery_node = brewery_node->next_sibling())
-	{
-		xml_node<>* node_hierarchy = brewery_node->first_node("hierarchy");
-		xml_node<>* node_point = brewery_node->first_node("point");
+	
+	CString tempSuffix(".obj");
 
-		CString name, latitude, longitude;
-		if (node_hierarchy != NULL)
+	for (xml_node<>* node_object = root_node->first_node("object"); node_object; node_object = node_object->next_sibling())
+	{
+		xml_node<>* node_hierarchy = node_object->first_node("hierarchy");
+		xml_node<>* node_point = node_object->first_node("point");
+
+		CString name, latitude, longitude, heading;
+		
+		if (node_hierarchy != NULL) {
+			
 			name = CString(node_hierarchy->first_attribute("name")->value());
+
+			if (name.Find(tempSuffix) != -1) {
+				name = name.Left(name.GetLength() - tempSuffix.GetLength());
+			}
+			else
+				name = "";
+		}
 		else
 			name = "";
 
 		if (node_point != NULL) {
-			latitude = CString(node_point->first_attribute("latitude")->value());
-			longitude = CString(node_point->first_attribute("longitude")->value());
+
+			if (node_point->first_attribute("latitude") != NULL)
+				latitude = CString(node_point->first_attribute("latitude")->value());
+			else
+				latitude = "";
+
+			if (node_point->first_attribute("longitude") != NULL)
+				longitude = CString(node_point->first_attribute("longitude")->value());
+			else
+				longitude = "";
+
+			if (node_point->first_attribute("heading") != NULL)
+				heading = CString(node_point->first_attribute("heading")->value());
+			else
+				heading = "";
 		}
 		else
 		{
-			latitude = longitude = "";
+			latitude = longitude = heading = "";
 		}
 		
 
-		Location tempLocation(name, latitude, longitude);
+		Location tempLocation(name, latitude, longitude, heading);
 		mlistXPlane.Add(tempLocation);
 
 		m_ctlListXPlane.AddString(name);
@@ -227,7 +252,6 @@ void CXMLMapperDlg::InitXPlaneXML() {
 
 void CXMLMapperDlg::InitMSXML() {
 
-	TRACE("Parsing my beer journal...\n");
 	xml_node<>* root_node;
 
 	// Read the xml file into a vector
@@ -236,38 +260,24 @@ void CXMLMapperDlg::InitMSXML() {
 	vector<char> buffer((istreambuf_iterator<char>(theFile)), istreambuf_iterator<char>());
 	buffer.push_back('\0');
 	// Parse the buffer using the xml file parsing library into doc 
-	m_xplaneDoc.parse<0>(&buffer[0]);
+	m_microsoftDoc.parse<0>(&buffer[0]);
 	// Find our root node
-	root_node = m_xplaneDoc.first_node("doc")->first_node("objects");
+	root_node = m_microsoftDoc.first_node("FSData");
 
 
 	// Iterate over the brewerys
-	int i = 0;
-	for (xml_node<>* brewery_node = root_node->first_node("object"); brewery_node; brewery_node = brewery_node->next_sibling())
+	for (xml_node<>* node_SceneryObject = root_node->first_node("SceneryObject"); node_SceneryObject; node_SceneryObject = node_SceneryObject->next_sibling())
 	{
-		xml_node<>* node_hierarchy = brewery_node->first_node("hierarchy");
-		xml_node<>* node_point = brewery_node->first_node("point");
-
 		CString name, latitude, longitude;
-		if (node_hierarchy != NULL)
-			name = CString(node_hierarchy->first_attribute("name")->value());
-		else
-			name = "";
+		
+		name = CString(node_SceneryObject->first_attribute("heading")->value());
+		latitude = CString(node_SceneryObject->first_attribute("lat")->value());
+		longitude = CString(node_SceneryObject->first_attribute("lon")->value());
 
-		if (node_point != NULL) {
-			latitude = CString(node_point->first_attribute("latitude")->value());
-			longitude = CString(node_point->first_attribute("longitude")->value());
-		}
-		else
-		{
-			latitude = longitude = "";
-		}
+		Location tempLocation(name, latitude, longitude, CString("temporary heading"));
+		mlistMicrosoft.Add(tempLocation);
 
-
-		Location tempLocation(name, latitude, longitude);
-		mlistXPlane.Add(tempLocation);
-
-		m_ctlListXPlane.AddString(name);
+		m_ctlListMicrosoft.AddString(name);
 	}
 }
 
@@ -281,4 +291,17 @@ void CXMLMapperDlg::OnLbnSelchangeListXplane()
 	this->m_ctlStaticXLongitude.SetWindowTextW(locationSelected.longitude);
 	this->m_ctlStaticXLatitude.SetWindowTextW(locationSelected.latitude);
 	this->m_ctlStaticXHeading.SetWindowTextW(locationSelected.name);
+}
+
+
+void CXMLMapperDlg::OnLbnSelchangeListMs()
+{
+	// TODO: Add your control notification handler code here
+	int i = m_ctlListMicrosoft.GetCurSel();
+
+	Location locationSelected = mlistMicrosoft.GetAt(i);
+
+	this->m_ctlStaticMSLongitude.SetWindowTextW(locationSelected.longitude);
+	this->m_ctlStaticMSLatitude.SetWindowTextW(locationSelected.latitude);
+	this->m_ctlStaticMSHeading.SetWindowTextW(locationSelected.name);
 }

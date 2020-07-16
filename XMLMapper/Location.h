@@ -7,10 +7,11 @@ class Location
 		CString name;
 		CString latitude;
 		CString longitude;
+		CString heading;
 
 
 		Location();
-		Location(CString name, CString latitude, CString longitude);
+		Location(CString name, CString latitude, CString longitude, CString heading);
 		
 };
 
