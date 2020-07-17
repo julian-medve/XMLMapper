@@ -183,6 +183,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ColoredListBox.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MSLocation.h" />
     <ClInclude Include="XPlaneLocation.h" />
@@ -193,6 +194,7 @@
     <ClInclude Include="XMLMapperDlg.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ColoredListBox.cpp" />
     <ClCompile Include="XPlaneLocation.cpp" />
     <ClCompile Include="MSLocation.cpp" />
     <ClCompile Include="pch.cpp">

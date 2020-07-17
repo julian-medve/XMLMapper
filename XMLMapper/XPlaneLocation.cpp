@@ -6,7 +6,7 @@ XPlaneLocation::XPlaneLocation() {
 	this->name = this->latitude = this->longitude = this->heading = "";
 }
 
-XPlaneLocation::XPlaneLocation(CString name, CString latitude, CString longitude, CString heading) {
+XPlaneLocation::XPlaneLocation(CStringA name, CStringA latitude, CStringA longitude, CStringA heading) {
 
 	this->name		= name;
 	this->latitude	= latitude;

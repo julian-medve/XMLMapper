@@ -6,6 +6,7 @@
 #include "XPlaneLocation.h"
 #include "MSLocation.h"
 #include "rapidxml-1.13/rapidxml.hpp"
+#include "coloredlistbox.h"
 
 
 using namespace rapidxml;
@@ -40,15 +41,18 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 	
-	void InitXPlaneXML();
-	void InitMSXML();
+	void InitXPlaneXML(CString filepath);
+	void InitMSXML(CString filepath);
+	void InitListbox();
+	CString GetObjectName(CStringA);
+
 
 public:
 	CArray<XPlaneLocation> mlistXPlane;
 	CArray<MSLocation> mlistMicrosoft;
 
-	CListBox m_ctlListMicrosoft;
-	CListBox m_ctlListXPlane;
+	CColoredListBox m_ctlListMicrosoft;
+	CColoredListBox m_ctlListXPlane;
 
 	CStatic m_ctlStaticMSObjectName;
 	CStatic m_ctlStaticMSLatitude;
@@ -61,11 +65,17 @@ public:
 	CStatic m_ctlStaticXHeading;
 
 
+	// Variables for selected on Xplane and Microsoft XML listbox
+	int m_nSelectedXplane;
+	int m_nSelectedMicrosoft;
+
 private:
-	xml_document<> m_xplaneDoc;
-	xml_document<> m_microsoftDoc;
 
 public:
 	afx_msg void OnLbnSelchangeListMs();
 	afx_msg void OnLbnSelchangeListXplane();
+	afx_msg void OnBnClickedButtonLink();
+	afx_msg void OnBnClickedOk();
+	afx_msg void OnBnClickedBtnMicrosoft();
+	afx_msg void OnBnClickedBtnXplaneXml();
 };

@@ -4,26 +4,26 @@
 class MSLocation
 {
 public:
-	CString name;
-	CString latitude;
-	CString longitude;
-	CString heading;
+	CStringA name;
+	CStringA latitude;
+	CStringA longitude;
+	CStringA heading;
 
-	CString alt;
-	CString pitch;
-	CString bank;
-	CString imageComplexity;
-	CString altitudeIsAgl;
-	CString snapToGround;
-	CString snapToNormal;
-	CString library_name;
-	CString library_scale;
+	CStringA alt;
+	CStringA pitch;
+	CStringA bank;
+	CStringA imageComplexity;
+	CStringA altitudeIsAgl;
+	CStringA snapToGround;
+	CStringA snapToNormal;
+	CStringA library_name;
+	CStringA library_scale;
 
 
 	MSLocation();
-	MSLocation(CString name, CString latitude, CString longitude, CString heading,
-		CString alt, CString pitch, CString bank, CString imageComplexity,
-		CString altitudeIsAgl, CString snapToGround, CString snapToNormal, CString library_name, CString library_scale);
+	MSLocation(CStringA name, CStringA latitude, CStringA longitude, CStringA heading,
+		CStringA alt, CStringA pitch, CStringA bank, CStringA imageComplexity,
+		CStringA altitudeIsAgl, CStringA snapToGround, CStringA snapToNormal, CStringA library_name, CStringA library_scale);
 
 };
 

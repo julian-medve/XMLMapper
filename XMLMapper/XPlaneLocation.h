@@ -4,12 +4,12 @@
 class XPlaneLocation
 {
 	public :
-		CString name;
-		CString latitude;
-		CString longitude;
-		CString heading;
+		CStringA name;
+		CStringA latitude;
+		CStringA longitude;
+		CStringA heading;
 
 		XPlaneLocation();
-		XPlaneLocation(CString name, CString latitude, CString longitude, CString heading);
+		XPlaneLocation(CStringA name, CStringA latitude, CStringA longitude, CStringA heading);
 };
 

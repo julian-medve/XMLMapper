@@ -15,10 +15,14 @@
 #include <fstream>
 #include <vector>
 
+#include "rapidxml-1.13/rapidxml_print.hpp"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+
+#define TEMP_PREFIX "SceneryObject name: "
 
 
 // CAboutDlg dialog used for App About
@@ -89,6 +93,10 @@ BEGIN_MESSAGE_MAP(CXMLMapperDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_LBN_SELCHANGE(IDC_LIST_XPLANE, &CXMLMapperDlg::OnLbnSelchangeListXplane)
 	ON_LBN_SELCHANGE(IDC_LIST_MS, &CXMLMapperDlg::OnLbnSelchangeListMs)
+	ON_BN_CLICKED(IDC_BUTTON_LINK, &CXMLMapperDlg::OnBnClickedButtonLink)
+	ON_BN_CLICKED(IDOK, &CXMLMapperDlg::OnBnClickedOk)
+	ON_BN_CLICKED(IDC_BTN_MICROSOFT, &CXMLMapperDlg::OnBnClickedBtnMicrosoft)
+	ON_BN_CLICKED(IDC_BTN_XPLANE_XML, &CXMLMapperDlg::OnBnClickedBtnXplaneXml)
 END_MESSAGE_MAP()
 
 
@@ -125,10 +133,6 @@ BOOL CXMLMapperDlg::OnInitDialog()
 
 
 	// TODO: Add extra initialization here
-
-	InitXPlaneXML();
-	InitMSXML();
-	
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -183,12 +187,14 @@ HCURSOR CXMLMapperDlg::OnQueryDragIcon()
 }
 
 
-void CXMLMapperDlg::InitXPlaneXML() {
+void CXMLMapperDlg::InitXPlaneXML(CString filepath) {
+	
+	xml_document<> m_xplaneDoc;
 
 	xml_node<>* root_node;
 
 	// Read the xml file into a vector
-	ifstream theFile("E:\\____GIT____\\XMLMapper\\earth.wed.xml");
+	ifstream theFile(filepath);
 
 	vector<char> buffer((istreambuf_iterator<char>(theFile)), istreambuf_iterator<char>());
 	buffer.push_back('\0');
@@ -199,23 +205,31 @@ void CXMLMapperDlg::InitXPlaneXML() {
 
 
 	
+	mlistXPlane.RemoveAll();
+	m_ctlListXPlane.ResetContent();
+
+	
 	// Iterate over the brewerys
 	
-	CString tempSuffix(".obj");
+	CStringA tempSuffix(".obj");
 
 	for (xml_node<>* node_object = root_node->first_node("object"); node_object; node_object = node_object->next_sibling())
 	{
 		xml_node<>* node_hierarchy = node_object->first_node("hierarchy");
 		xml_node<>* node_point = node_object->first_node("point");
 
-		CString name, latitude, longitude, heading;
+		CStringA name, latitude, longitude, heading;
 		
 		if (node_hierarchy != NULL) {
 
-			name = CString(node_hierarchy->first_attribute("name")->value());
+			name = CStringA(node_hierarchy->first_attribute("name")->value());
 
 			if (name.Find(tempSuffix) != -1) {
 				name = name.Left(name.GetLength() - tempSuffix.GetLength());
+				int lastIndex = name.ReverseFind('/');
+
+				if (lastIndex != -1)
+					name = name.Right(name.GetLength() - lastIndex - 1);
 			}
 			else
 				continue;
@@ -226,17 +240,17 @@ void CXMLMapperDlg::InitXPlaneXML() {
 		if (node_point != NULL) {
 
 			if (node_point->first_attribute("latitude") != NULL)
-				latitude = CString(node_point->first_attribute("latitude")->value());
+				latitude = CStringA(node_point->first_attribute("latitude")->value());
 			else
 				latitude = "";
 
 			if (node_point->first_attribute("longitude") != NULL)
-				longitude = CString(node_point->first_attribute("longitude")->value());
+				longitude = CStringA(node_point->first_attribute("longitude")->value());
 			else
 				longitude = "";
 
 			if (node_point->first_attribute("heading") != NULL)
-				heading = CString(node_point->first_attribute("heading")->value());
+				heading = CStringA(node_point->first_attribute("heading")->value());
 			else
 				heading = "";
 		}
@@ -249,16 +263,27 @@ void CXMLMapperDlg::InitXPlaneXML() {
 		XPlaneLocation tempLocation(name, latitude, longitude, heading);
 		mlistXPlane.Add(tempLocation);
 
-		m_ctlListXPlane.AddString(name);
+		m_ctlListXPlane.AddString(CString(name));
 	}
+
+	InitListbox();
 }
 
-void CXMLMapperDlg::InitMSXML() {
+
+CString CXMLMapperDlg::GetObjectName(CStringA name) {
+
+	CStringA tempPrefix = "SceneryObject name: ";
+	return CString(name.Right(name.GetLength() - tempPrefix.GetLength()));
+}
+
+void CXMLMapperDlg::InitMSXML(CString filepath) {
+
+	xml_document<> m_microsoftDoc;
 
 	xml_node<>* root_node;
 
 	// Read the xml file into a vector
-	ifstream theFile("E:\\____GIT____\\XMLMapper\\objects.xml");
+	ifstream theFile(filepath);
 
 	vector<char> buffer((istreambuf_iterator<char>(theFile)), istreambuf_iterator<char>());
 	buffer.push_back('\0');
@@ -267,7 +292,9 @@ void CXMLMapperDlg::InitMSXML() {
 	// Find our root node
 	root_node = m_microsoftDoc.first_node("FSData");
 
-	CString tempPrefix("SceneryObject name: ");
+	
+	mlistMicrosoft.RemoveAll();
+	m_ctlListMicrosoft.ResetContent();
 
 	// Iterate over the brewerys
 	for (xml_node<>* node_SceneryObject = root_node->first_node("SceneryObject"); node_SceneryObject; node_SceneryObject = node_SceneryObject->next_sibling())
@@ -276,34 +303,56 @@ void CXMLMapperDlg::InitMSXML() {
 		if (node_SceneryObject->type() == node_comment)
 			continue;
 
-		CString name, latitude, longitude, heading, alt, pitch, bank, imageComplexity, altitudeIsAgl, snapToGround, snapToNormal, library_name, library_scale;
+		CStringA name, latitude, longitude, heading, alt, pitch, bank, imageComplexity, altitudeIsAgl, snapToGround, snapToNormal, library_name, library_scale;
 		
-		name				= CString(node_SceneryObject->previous_sibling()->value());
-		name				= name.Right(name.GetLength() - tempPrefix.GetLength());
+		name				= CStringA(node_SceneryObject->previous_sibling()->value());
 		
-		heading				= CString(node_SceneryObject->first_attribute("heading")->value());
-		latitude			= CString(node_SceneryObject->first_attribute("lat")->value());
-		longitude			= CString(node_SceneryObject->first_attribute("lon")->value());
+		heading				= CStringA(node_SceneryObject->first_attribute("heading")->value());
+		latitude			= CStringA(node_SceneryObject->first_attribute("lat")->value());
+		longitude			= CStringA(node_SceneryObject->first_attribute("lon")->value());
 
+		alt					= CStringA(node_SceneryObject->first_attribute("alt")->value());
+		pitch				= CStringA(node_SceneryObject->first_attribute("pitch")->value());
+		bank				= CStringA(node_SceneryObject->first_attribute("bank")->value());
+		imageComplexity		= CStringA(node_SceneryObject->first_attribute("imageComplexity")->value());
 
-		alt					= CString(node_SceneryObject->first_attribute("alt")->value());
-		pitch				= CString(node_SceneryObject->first_attribute("pitch")->value());
-		bank				= CString(node_SceneryObject->first_attribute("bank")->value());
-		imageComplexity		= CString(node_SceneryObject->first_attribute("imageComplexity")->value());
+		altitudeIsAgl		= CStringA(node_SceneryObject->first_attribute("altitudeIsAgl")->value());
+		snapToGround		= CStringA(node_SceneryObject->first_attribute("snapToGround")->value());
+		snapToNormal		= CStringA(node_SceneryObject->first_attribute("snapToNormal")->value());
 
-		altitudeIsAgl		= CString(node_SceneryObject->first_attribute("altitudeIsAgl")->value());
-		snapToGround		= CString(node_SceneryObject->first_attribute("snapToGround")->value());
-		snapToNormal		= CString(node_SceneryObject->first_attribute("snapToNormal")->value());
-
-		library_name		= CString(node_SceneryObject->first_node("LibraryObject")->first_attribute("name")->value());
-		library_scale		= CString(node_SceneryObject->first_node("LibraryObject")->first_attribute("scale")->value());
+		library_name		= CStringA(node_SceneryObject->first_node("LibraryObject")->first_attribute("name")->value());
+		library_scale		= CStringA(node_SceneryObject->first_node("LibraryObject")->first_attribute("scale")->value());
 		
 
-		MSLocation tempLocation(name, latitude, longitude, heading, alt, pitch, bank, imageComplexity, altitudeIsAgl, snapToGround, snapToNormal, library_name, library_scale);
+		MSLocation tempLocation(name, CStringA(node_SceneryObject->first_attribute("lat")->value()), longitude, heading, alt, pitch, bank, imageComplexity, altitudeIsAgl, snapToGround, snapToNormal, library_name, library_scale);
 		mlistMicrosoft.Add(tempLocation);
 
-		m_ctlListMicrosoft.AddString(name);
+		
+		m_ctlListMicrosoft.AddString(GetObjectName(name));
 	}
+}
+
+void CXMLMapperDlg::InitListbox() {
+
+	for(int i = 0; i < mlistMicrosoft.GetCount(); i++)
+		for (int j = 0; j < mlistXPlane.GetCount(); j++) {
+		
+			MSLocation msLocation = mlistMicrosoft.GetAt(i);
+			XPlaneLocation xLocation = mlistXPlane.GetAt(j);
+
+			if (msLocation.latitude.Compare(xLocation.latitude) == 0
+				&& msLocation.longitude.Compare(xLocation.longitude) == 0
+				&& msLocation.heading.Compare(xLocation.heading) == 0) {
+			
+				m_ctlListMicrosoft.SetItemData(i, 1);
+				m_ctlListXPlane.SetItemData(j, 1);
+
+				continue;
+			}
+		}
+
+	m_ctlListMicrosoft.Invalidate();
+	m_ctlListXPlane.Invalidate();
 }
 
 void CXMLMapperDlg::OnLbnSelchangeListXplane()
@@ -314,12 +363,15 @@ void CXMLMapperDlg::OnLbnSelchangeListXplane()
 	if (i >= mlistXPlane.GetCount())
 		return;
 
+
+	m_nSelectedXplane = i;
+
 	XPlaneLocation locationSelected =	mlistXPlane.GetAt(i);
 
-	this->m_ctlStaticXObjectName.SetWindowTextW(locationSelected.name);
-	this->m_ctlStaticXLongitude.SetWindowTextW(locationSelected.longitude);
-	this->m_ctlStaticXLatitude.SetWindowTextW(locationSelected.latitude);
-	this->m_ctlStaticXHeading.SetWindowTextW(locationSelected.heading);
+	this->m_ctlStaticXObjectName.SetWindowTextW(CString(locationSelected.name));
+	this->m_ctlStaticXLongitude.SetWindowTextW(CString(locationSelected.longitude));
+	this->m_ctlStaticXLatitude.SetWindowTextW(CString(locationSelected.latitude));
+	this->m_ctlStaticXHeading.SetWindowTextW(CString(locationSelected.heading));
 }
 
 
@@ -331,10 +383,119 @@ void CXMLMapperDlg::OnLbnSelchangeListMs()
 	if (i >= m_ctlListMicrosoft.GetCount())
 		return;
 
+	m_nSelectedMicrosoft = i;
+
 	MSLocation locationSelected = mlistMicrosoft.GetAt(i);
 
-	this->m_ctlStaticMSObjectName.SetWindowTextW(locationSelected.name);
-	this->m_ctlStaticMSLongitude.SetWindowTextW(locationSelected.longitude);
-	this->m_ctlStaticMSLatitude.SetWindowTextW(locationSelected.latitude);
-	this->m_ctlStaticMSHeading.SetWindowTextW(locationSelected.heading);
+	this->m_ctlStaticMSObjectName.SetWindowTextW(GetObjectName(locationSelected.name));
+	this->m_ctlStaticMSLongitude.SetWindowTextW(CString(locationSelected.longitude));
+	this->m_ctlStaticMSLatitude.SetWindowTextW(CString(locationSelected.latitude));
+	this->m_ctlStaticMSHeading.SetWindowTextW(CString(locationSelected.heading));
+}
+
+
+void CXMLMapperDlg::OnBnClickedButtonLink()
+{
+	// TODO: Add your control notification handler code here
+
+	MSLocation selMSLocation = mlistMicrosoft.GetAt(m_nSelectedMicrosoft);
+	XPlaneLocation selXPlaneLocation = mlistXPlane.GetAt(m_nSelectedXplane);
+
+	selMSLocation.heading	= selXPlaneLocation.heading;
+	selMSLocation.latitude	= selXPlaneLocation.latitude;
+	selMSLocation.longitude	= selXPlaneLocation.longitude;
+
+	mlistMicrosoft.SetAt(m_nSelectedMicrosoft, selMSLocation);
+	m_ctlListMicrosoft.SetCurSel(m_nSelectedMicrosoft);
+	
+	m_ctlListXPlane.SetItemData(m_nSelectedXplane, 1);
+	m_ctlListXPlane.Invalidate();
+
+	m_ctlListMicrosoft.SetItemData(m_nSelectedMicrosoft, 1);
+	m_ctlListMicrosoft.Invalidate();
+}
+
+void CXMLMapperDlg::OnBnClickedOk()
+{
+	// TODO: Add your control notification handler code here
+	
+	CString filename = CTime::GetCurrentTime().Format("E:\\____GIT____\\XMLMapper\\%Y%m%d_%H%M%S_exported.xml");
+
+	ofstream theFile(filename);
+	xml_document<> doc;
+	xml_node<>* decl = doc.allocate_node(node_declaration);
+	decl->append_attribute(doc.allocate_attribute("version", "1.0"));
+	doc.append_node(decl);
+
+	xml_node<>* root = doc.allocate_node(node_element, "FSData");
+	root->append_attribute(doc.allocate_attribute("version", "9.0"));
+	doc.append_node(root);
+
+
+	for (int i = 0; i < mlistMicrosoft.GetCount(); i++) {
+		
+		MSLocation location = mlistMicrosoft.GetAt(i);
+
+		xml_node<>* childComment = doc.allocate_node(node_comment);
+		
+		childComment->value(location.name);
+
+		xml_node<>* child = doc.allocate_node(node_element, "SceneryObject");
+		
+		
+		child->append_attribute(doc.allocate_attribute("lat", location.latitude));
+		child->append_attribute(doc.allocate_attribute("lon", location.longitude));
+		child->append_attribute(doc.allocate_attribute("alt", location.alt));
+		child->append_attribute(doc.allocate_attribute("pitch", location.pitch));
+
+		child->append_attribute(doc.allocate_attribute("bank", location.bank));
+		child->append_attribute(doc.allocate_attribute("heading", location.heading));
+		child->append_attribute(doc.allocate_attribute("imageComplexity", location.imageComplexity));
+		child->append_attribute(doc.allocate_attribute("altitudeIsAgl", location.altitudeIsAgl));
+
+		child->append_attribute(doc.allocate_attribute("snapToGround", location.snapToGround));
+		child->append_attribute(doc.allocate_attribute("snapToNormal", location.snapToNormal));
+
+		xml_node<>* childLibrary = doc.allocate_node(node_element, "LibraryObject");
+		childLibrary->append_attribute(doc.allocate_attribute("name", location.library_name));
+		childLibrary->append_attribute(doc.allocate_attribute("scale",location.library_scale));
+
+		child->append_node(childLibrary);
+
+		root->append_node(childComment);
+		root->append_node(child);
+	}
+
+	theFile << doc;
+	theFile.close();
+	doc.clear();
+
+	/*CDialogEx::OnOK();*/
+}
+
+
+void CXMLMapperDlg::OnBnClickedBtnMicrosoft()
+{
+	// TODO: Add your control notification handler code here
+	
+	const TCHAR szFilter[] = _T("XML Files (*.xml)|*.xml|All Files (*.*)|*.*||");
+	CFileDialog dlg(true, _T("xml"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, szFilter, this);
+	if (dlg.DoModal() == IDOK)
+	{
+		CString sFilePath = dlg.GetPathName();
+		InitMSXML(sFilePath);
+	}
+}
+
+
+void CXMLMapperDlg::OnBnClickedBtnXplaneXml()
+{
+	// TODO: Add your control notification handler code here
+	const TCHAR szFilter[] = _T("XML Files (*.xml)|*.xml|All Files (*.*)|*.*||");
+	CFileDialog dlg(TRUE, _T("xml"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, szFilter, this);
+	if (dlg.DoModal() == IDOK)
+	{
+		CString sFilePath = dlg.GetPathName();
+		InitXPlaneXML(sFilePath);
+	}
 }
