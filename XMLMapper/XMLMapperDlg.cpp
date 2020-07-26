@@ -398,7 +398,10 @@ void CXMLMapperDlg::OnLbnSelchangeListMs()
 
 void CXMLMapperDlg::OnBnClickedButtonLink()
 {
-	// TODO: Add your control notification handler code here
+	// Each MSFS object can only be used once
+
+	if (m_ctlListMicrosoft.GetItemData(m_nSelectedMicrosoft) == 1)
+		return;
 
 	MSLocation selMSLocation = mlistMicrosoft.GetAt(m_nSelectedMicrosoft);
 	XPlaneLocation selXPlaneLocation = mlistXPlane.GetAt(m_nSelectedXplane);
@@ -410,11 +413,11 @@ void CXMLMapperDlg::OnBnClickedButtonLink()
 	mlistMicrosoft.SetAt(m_nSelectedMicrosoft, selMSLocation);
 	m_ctlListMicrosoft.SetCurSel(m_nSelectedMicrosoft);
 	
-	m_ctlListXPlane.SetItemData(m_nSelectedXplane, 1);
-	m_ctlListXPlane.Invalidate();
-
 	m_ctlListMicrosoft.SetItemData(m_nSelectedMicrosoft, 1);
 	m_ctlListMicrosoft.Invalidate();
+
+	m_ctlListXPlane.SetItemData(m_nSelectedXplane, 1);
+	m_ctlListXPlane.Invalidate();
 }
 
 void CXMLMapperDlg::OnBnClickedOk()
@@ -435,7 +438,7 @@ void CXMLMapperDlg::OnBnClickedOk()
 		
 		// Save changed objects.xml to selected path
 
-		ofstream theFile(filepath);
+		ofstream theFile(sFilePath);
 		xml_document<> doc;
 		xml_node<>* decl = doc.allocate_node(node_declaration);
 		decl->append_attribute(doc.allocate_attribute("version", "1.0"));
