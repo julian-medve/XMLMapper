@@ -330,6 +330,8 @@ void CXMLMapperDlg::InitMSXML(CString filepath) {
 		
 		m_ctlListMicrosoft.AddString(GetObjectName(name));
 	}
+
+	InitListbox();
 }
 
 void CXMLMapperDlg::InitListbox() {
@@ -419,56 +421,71 @@ void CXMLMapperDlg::OnBnClickedOk()
 {
 	// TODO: Add your control notification handler code here
 	
-	CString filename = CTime::GetCurrentTime().Format("E:\\____GIT____\\XMLMapper\\%Y%m%d_%H%M%S_exported.xml");
+	const TCHAR szFilter[] = _T("XML Files (*.xml)|*.xml|All Files (*.*)|*.*||");
 
-	ofstream theFile(filename);
-	xml_document<> doc;
-	xml_node<>* decl = doc.allocate_node(node_declaration);
-	decl->append_attribute(doc.allocate_attribute("version", "1.0"));
-	doc.append_node(decl);
+	CString filename = CTime::GetCurrentTime().Format( "%Y%m%d_%H%M%S_exported.xml");
+	CString filepath;
+	filepath.Format(_T("%s\\%s"), m_strMSXMLFilepath, filename);
 
-	xml_node<>* root = doc.allocate_node(node_element, "FSData");
-	root->append_attribute(doc.allocate_attribute("version", "9.0"));
-	doc.append_node(root);
-
-
-	for (int i = 0; i < mlistMicrosoft.GetCount(); i++) {
+	CFileDialog dlg(false, _T("xml"), filepath, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, szFilter, this);
+	
+	if (dlg.DoModal() == IDOK)
+	{
+		CString sFilePath = dlg.GetPathName();
 		
-		MSLocation location = mlistMicrosoft.GetAt(i);
+		// Save changed objects.xml to selected path
 
-		xml_node<>* childComment = doc.allocate_node(node_comment);
-		
-		childComment->value(location.name);
+		ofstream theFile(filepath);
+		xml_document<> doc;
+		xml_node<>* decl = doc.allocate_node(node_declaration);
+		decl->append_attribute(doc.allocate_attribute("version", "1.0"));
+		doc.append_node(decl);
 
-		xml_node<>* child = doc.allocate_node(node_element, "SceneryObject");
-		
-		
-		child->append_attribute(doc.allocate_attribute("lat", location.latitude));
-		child->append_attribute(doc.allocate_attribute("lon", location.longitude));
-		child->append_attribute(doc.allocate_attribute("alt", location.alt));
-		child->append_attribute(doc.allocate_attribute("pitch", location.pitch));
+		xml_node<>* root = doc.allocate_node(node_element, "FSData");
+		root->append_attribute(doc.allocate_attribute("version", "9.0"));
+		doc.append_node(root);
 
-		child->append_attribute(doc.allocate_attribute("bank", location.bank));
-		child->append_attribute(doc.allocate_attribute("heading", location.heading));
-		child->append_attribute(doc.allocate_attribute("imageComplexity", location.imageComplexity));
-		child->append_attribute(doc.allocate_attribute("altitudeIsAgl", location.altitudeIsAgl));
 
-		child->append_attribute(doc.allocate_attribute("snapToGround", location.snapToGround));
-		child->append_attribute(doc.allocate_attribute("snapToNormal", location.snapToNormal));
+		for (int i = 0; i < mlistMicrosoft.GetCount(); i++) {
 
-		xml_node<>* childLibrary = doc.allocate_node(node_element, "LibraryObject");
-		childLibrary->append_attribute(doc.allocate_attribute("name", location.library_name));
-		childLibrary->append_attribute(doc.allocate_attribute("scale",location.library_scale));
+			MSLocation location = mlistMicrosoft.GetAt(i);
 
-		child->append_node(childLibrary);
+			xml_node<>* childComment = doc.allocate_node(node_comment);
 
-		root->append_node(childComment);
-		root->append_node(child);
+			childComment->value(location.name);
+
+			xml_node<>* child = doc.allocate_node(node_element, "SceneryObject");
+
+
+			child->append_attribute(doc.allocate_attribute("lat", location.latitude));
+			child->append_attribute(doc.allocate_attribute("lon", location.longitude));
+			child->append_attribute(doc.allocate_attribute("alt", location.alt));
+			child->append_attribute(doc.allocate_attribute("pitch", location.pitch));
+
+			child->append_attribute(doc.allocate_attribute("bank", location.bank));
+			child->append_attribute(doc.allocate_attribute("heading", location.heading));
+			child->append_attribute(doc.allocate_attribute("imageComplexity", location.imageComplexity));
+			child->append_attribute(doc.allocate_attribute("altitudeIsAgl", location.altitudeIsAgl));
+
+			child->append_attribute(doc.allocate_attribute("snapToGround", location.snapToGround));
+			child->append_attribute(doc.allocate_attribute("snapToNormal", location.snapToNormal));
+
+			xml_node<>* childLibrary = doc.allocate_node(node_element, "LibraryObject");
+			childLibrary->append_attribute(doc.allocate_attribute("name", location.library_name));
+			childLibrary->append_attribute(doc.allocate_attribute("scale", location.library_scale));
+
+			child->append_node(childLibrary);
+
+			root->append_node(childComment);
+			root->append_node(child);
+		}
+
+		theFile << doc;
+		theFile.close();
+		doc.clear();
 	}
 
-	theFile << doc;
-	theFile.close();
-	doc.clear();
+	
 
 	/*CDialogEx::OnOK();*/
 }
@@ -484,6 +501,14 @@ void CXMLMapperDlg::OnBnClickedBtnMicrosoft()
 	{
 		CString sFilePath = dlg.GetPathName();
 		InitMSXML(sFilePath);
+
+
+		// Save Microsoft objects.xml path
+
+		int lastIndex = sFilePath.ReverseFind('\\');
+		
+		if (lastIndex != -1)
+			m_strMSXMLFilepath = sFilePath.Left(lastIndex);
 	}
 }
 

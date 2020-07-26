@@ -69,6 +69,8 @@ public:
 	int m_nSelectedXplane;
 	int m_nSelectedMicrosoft;
 
+	CString m_strMSXMLFilepath;
+
 private:
 
 public:
