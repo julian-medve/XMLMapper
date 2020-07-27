@@ -21,6 +21,7 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+#include "MSExtraNode.h"
 
 #define TEMP_PREFIX "SceneryObject name: "
 
@@ -295,13 +296,38 @@ void CXMLMapperDlg::InitMSXML(CString filepath) {
 	
 	mlistMicrosoft.RemoveAll();
 	m_ctlListMicrosoft.ResetContent();
+	mlistMSExtra.RemoveAll();
 
 	// Iterate over the brewerys
 	for (xml_node<>* node_SceneryObject = root_node->first_node("SceneryObject"); node_SceneryObject; node_SceneryObject = node_SceneryObject->next_sibling())
 	{
-
 		if (node_SceneryObject->type() == node_comment)
 			continue;
+
+
+		CStringA node_name = CStringA(node_SceneryObject->name());
+
+		if (node_name.Find("SceneryObject") == -1) 
+		{
+
+			CString nodeValue = CString(node_SceneryObject->value());
+
+			MSExtraNode extraNode(node_name);
+
+			for (xml_attribute<>* attributeObject = node_SceneryObject->first_attribute(); attributeObject; attributeObject = attributeObject->next_attribute())
+			{
+				CStringA name = CStringA(attributeObject->name());
+				CStringA value = CStringA(attributeObject->value());
+
+				extraNode.put(string(name.GetBuffer()), string(value.GetBuffer()));
+			}
+
+			mlistMSExtra.Add(extraNode);
+
+			continue;
+		}
+
+
 
 		CStringA name, latitude, longitude, heading, alt, pitch, bank, imageComplexity, altitudeIsAgl, snapToGround, snapToNormal, library_name, library_scale;
 		
@@ -483,12 +509,44 @@ void CXMLMapperDlg::OnBnClickedOk()
 			root->append_node(child);
 		}
 
+
+		// Save Extra xml objects, not SceneryObject
+
+		for (int i = 0; i < mlistMSExtra.GetCount(); i++) 
+		{
+			MSExtraNode extraNode = mlistMSExtra.GetAt(i);
+
+			xml_node<>* child = doc.allocate_node(node_element, extraNode.name);
+			
+			vector<string> strVector;
+			
+			for (map<string, string>::iterator it = extraNode.attributes.begin(); it != extraNode.attributes.end(); ++it) 
+			{
+				string key = it->first;
+				string value = it->second;
+				const char* k1 = key.c_str();
+				const char* v1 = value.c_str();
+				int klen = key.length();
+				int vlen = value.length();
+				char* ckey = new char[klen + 1];
+				char* cvalue = new char[vlen + 1];
+
+				memset(ckey, 0, klen + 1);
+				memset(cvalue, 0, vlen + 1);
+				memcpy(ckey, k1, klen);
+				memcpy(cvalue, v1, vlen);
+
+				child->append_attribute(doc.allocate_attribute(ckey, cvalue));
+			}
+
+			root->append_node(child);
+		}
+
+
 		theFile << doc;
 		theFile.close();
 		doc.clear();
 	}
-
-	
 
 	/*CDialogEx::OnOK();*/
 }

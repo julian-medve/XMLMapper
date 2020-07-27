@@ -185,6 +185,7 @@
   <ItemGroup>
     <ClInclude Include="ColoredListBox.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="MSExtraNode.h" />
     <ClInclude Include="MSLocation.h" />
     <ClInclude Include="XPlaneLocation.h" />
     <ClInclude Include="pch.h" />
@@ -195,6 +196,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ColoredListBox.cpp" />
+    <ClCompile Include="MSExtraNode.cpp" />
     <ClCompile Include="XPlaneLocation.cpp" />
     <ClCompile Include="MSLocation.cpp" />
     <ClCompile Include="pch.cpp">

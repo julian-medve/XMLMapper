@@ -5,6 +5,7 @@
 #pragma once
 #include "XPlaneLocation.h"
 #include "MSLocation.h"
+#include "MSExtraNode.h"
 #include "rapidxml-1.13/rapidxml.hpp"
 #include "coloredlistbox.h"
 
@@ -50,6 +51,7 @@ protected:
 public:
 	CArray<XPlaneLocation> mlistXPlane;
 	CArray<MSLocation> mlistMicrosoft;
+	CArray<MSExtraNode> mlistMSExtra;
 
 	CColoredListBox m_ctlListMicrosoft;
 	CColoredListBox m_ctlListXPlane;
@@ -65,7 +67,7 @@ public:
 	CStatic m_ctlStaticXHeading;
 
 
-	// Variables for selected on Xplane and Microsoft XML listbox
+	// Variables for selected item on Xplane and Microsoft XML listbox
 	int m_nSelectedXplane;
 	int m_nSelectedMicrosoft;
 
